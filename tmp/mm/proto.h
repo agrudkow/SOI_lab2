@@ -38,6 +38,7 @@ _PROTOTYPE( int do_getset, (void)					);
 /* main.c */
 _PROTOTYPE( void main, (void)						);
 _PROTOTYPE( int do_getprocnr, (void)						);
+_PROTOTYPE( int do_setgroup, (void)						);
 
 /* misc.c */
 _PROTOTYPE( int do_reboot, (void)					);
@@ -73,4 +74,3 @@ _PROTOTYPE( int allowed, (char *name_buf, struct stat *s_buf, int mask)	);
 _PROTOTYPE( int no_sys, (void)						);
 _PROTOTYPE( void panic, (char *format, int num)				);
 _PROTOTYPE( void tell_fs, (int what, int p1, int p2, int p3)		);
-

@@ -189,3 +189,7 @@ PUBLIC int do_getprocnr(void){
     return ENOENT;
 }
 
+PUBLIC int do_setgroup(){
+	message m = mm_in;
+	return _taskcall(SYSTASK, SYS_SETGROUP, &m);
+}

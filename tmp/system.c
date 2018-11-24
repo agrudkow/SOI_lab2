@@ -147,6 +147,7 @@ FORWARD _PROTOTYPE( int do_getmap, (message *m_ptr) );
 FORWARD _PROTOTYPE( int do_sysctl, (message *m_ptr) );
 FORWARD _PROTOTYPE( int do_puts, (message *m_ptr) );
 FORWARD _PROTOTYPE( int do_findproc, (message *m_ptr) );
+FORWARD _PROTOTYPE( int do_setgroup, (message *m_ptr) );
 
 
 /*===========================================================================*
@@ -182,6 +183,7 @@ PUBLIC void sys_task()
 	    case SYS_SYSCTL:	r = do_sysctl(&m);	break;
 	    case SYS_PUTS:	r = do_puts(&m);	break;
 	    case SYS_FINDPROC:	r = do_findproc(&m);	break;
+	    case SYS_GETGROUP:	r = do_setgroup(&m);	break;
 	    default:		r = E_BAD_FCN;
 	}
 
@@ -1229,3 +1231,25 @@ register struct proc *rp;
   }
 }
 #endif /* (CHIP == INTEL) */
+
+/*==========================================================================*
+ *			do_setgrpup			    *
+ *==========================================================================*/
+
+PRIVATE int do_setgroup(m_ptr)
+message *m_ptr;
+{
+  struct proc *process;
+
+  int new_group;
+  new_group = m_ptr->m1_i2;
+
+  for (process = BEG_PROC_ADDR; process < END_PROC_ADDR; process++){
+    if (istaskp(process) || isservp(process)) continue;
+    if (process->p_pid == m_ptr->m1_i1){
+      process->group = new_group;
+      return OK;
+    }
+  }
+  return ( ESRCH ) ;
+}

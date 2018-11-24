@@ -96,7 +96,8 @@ PUBLIC _PROTOTYPE (int (*call_vec[]), (void) ) = {
 	no_sys,		/* 76 = REBOOT */
 	do_svrctl,	/* 77 = SVRCTL */
 	no_sys, /* 78 = unused */
-	
+	no_sys, /* 79 = unused */
+
 };
 /* This should not fail with "array size is negative": */
 extern int dummy[sizeof(call_vec) == NCALLS * sizeof(call_vec[0]) ? 1 : -1];
@@ -111,7 +112,7 @@ extern int dummy[sizeof(call_vec) == NCALLS * sizeof(call_vec[0]) ? 1 : -1];
  * next entry is major device 1, etc.  Character and block devices can be
  * intermixed at random.  This ordering determines the device numbers in
  * /dev/ and is thereby more or less cast in stone once allocated.
- * Note that the major device numbers used in /dev are NOT the same as the 
+ * Note that the major device numbers used in /dev are NOT the same as the
  * task numbers used inside the kernel (as defined in <include/minix/com.h>).
  * Also note that FS knows the device number of /dev/ram to load the RAM disk.
  */
@@ -139,4 +140,3 @@ PUBLIC struct dmap dmap[] = {
 };
 
 PUBLIC int max_major = sizeof(dmap)/sizeof(struct dmap);
-

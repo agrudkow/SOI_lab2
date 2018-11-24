@@ -1,4 +1,4 @@
-#define NCALLS		  79	/* number of system calls allowed
+#define NCALLS		  80	/* number of system calls allowed
                              * -updated numer of syscalls, added GETPROSINR syscall
                              */
 
@@ -70,4 +70,4 @@
 
 /*Custom syscalls*/
 #define GETPROCNR     78
-
+#define SETGROUP     79
