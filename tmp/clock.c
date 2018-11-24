@@ -477,7 +477,8 @@ int irq;
   if (next_alarm <= now ||
       sched_ticks == 1 &&
       bill_ptr == prev_ptr &&
-      rdy_head[USER_Q] != NIL_PROC) {
+      ((rdy_head[USER_Q_NORM] != NIL_PROC && rp->group == 'N') ||
+			(rdy_head[USER_Q_CALC] != NIL_PROC && rp->group == 'C')) {
 	interrupt(CLOCK);
 	return 1;	/* Reenable interrupts */
   }

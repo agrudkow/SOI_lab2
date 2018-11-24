@@ -323,6 +323,7 @@ PRIVATE void pick_proc()
 	bill_ptr = rp;
 	current_group = 'N';
 	return;
+	}
   if ( (rp = rdy_head[USER_Q_CALC]) != NIL_PROC && rp->group == 'C'
 	&& (current_group != 'C' || rdy_head[USER_Q_NORM] == NIL_PROC)) {
 	proc_ptr = rp;
