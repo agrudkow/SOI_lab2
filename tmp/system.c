@@ -183,7 +183,7 @@ PUBLIC void sys_task()
 	    case SYS_SYSCTL:	r = do_sysctl(&m);	break;
 	    case SYS_PUTS:	r = do_puts(&m);	break;
 	    case SYS_FINDPROC:	r = do_findproc(&m);	break;
-	    case SYS_GETGROUP:	r = do_setgroup(&m);	break;
+	    case SYS_SETGROUP:	r = do_setgroup(&m);	break;
 	    default:		r = E_BAD_FCN;
 	}
 
@@ -1248,8 +1248,8 @@ message *m_ptr;
     if (istaskp(process) || isservp(process)) continue;
     if (process->p_pid == m_ptr->m1_i1){
       process->group = new_group;
-      return OK;
+      return (OK);
     }
   }
-  return ( ESRCH ) ;
+  return (ESRCH) ;
 }

@@ -29,7 +29,7 @@
 #	define DEV_SCATTER  8	/* fcn code for writing from a vector */
 #	define DEV_GATHER   9	/* fcn code for reading into a vector */
 #	define TTY_SETPGRP 10	/* fcn code for setpgroup */
-#	define TTY_EXIT	   11	/* a process group leader has exited */	
+#	define TTY_EXIT	   11	/* a process group leader has exited */
 #	define SUSPEND	 -998	/* used in interrupts when tty has no data */
 
 #define DP8390		(SB16 - ENABLE_DP8390)
@@ -134,6 +134,7 @@
 #	define SYS_PUTS      20	/* fcn code for sys_puts(count, buf) */
 #	define SYS_FINDPROC  21	/* fcn code for sys_findproc(name, &task_nr,
 				   flags) */
+# define SYS_SETGROUP  22 /* fcn code for sys_setgroup(m_ptr) */
 
 #define HARDWARE          -1	/* used as source on interrupt generated msgs*/
 
@@ -157,7 +158,7 @@
 #define TTY_REQUEST    COUNT	/* message parameter: ioctl request code */
 #define TTY_SPEK       POSITION	/* message parameter: ioctl speed, erasing */
 #define TTY_FLAGS      m2_l2	/* message parameter: ioctl tty mode */
-#define TTY_PGRP       m2_i3	/* message parameter: process group */	
+#define TTY_PGRP       m2_i3	/* message parameter: process group */
 
 /* Names of the message fields for QIC 02 status reply from tape driver */
 #define TAPE_STAT0	m2_l1
