@@ -53,6 +53,8 @@
 /* Constant definitions. */
 #define MILLISEC         100	/* how often to call the scheduler (msec) */
 #define SCHED_RATE (MILLISEC*HZ/1000)	/* number of ticks per schedule */
+#define QUANTS_NORM			10 /* number of quants for normal process */
+#define QUANTS_CALC			20 /* number of quants for calculation process */
 
 /* Clock parameters. */
 #if (CHIP == INTEL)
@@ -180,6 +182,13 @@ PRIVATE void do_clocktick()
 		}
 	}
   }
+
+	/* Set correct amount of quants for each group of processes */
+	/* If sched_ticks == SCHED_RATE it means that this is first clock tick for that very process */
+	if (sched_ticks == SCHED_RATE || rp->group == 'N')
+		sched_ticks *= QUANTS_NORM;
+	if (sched_ticks == SCHED_RATE || rp->group == 'C')
+		sched_ticks *= QUANTS_CALC;
 
   /* If a user process has been running too long, pick another one. */
   if (--sched_ticks == 0) {
