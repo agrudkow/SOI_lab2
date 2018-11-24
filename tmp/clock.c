@@ -482,6 +482,13 @@ int irq;
 	return 1;	/* Reenable interrupts */
   }
 
+	/* Set correct amount of quants for each group of processes */
+	/* If sched_ticks == SCHED_RATE it means that this is first clock tick for that very process */
+	if (sched_ticks == SCHED_RATE || rp->group == 'N')
+		sched_ticks *= QUANTS_NORM;
+	if (sched_ticks == SCHED_RATE || rp->group == 'C')
+		sched_ticks *= QUANTS_CALC;
+
   if (--sched_ticks == 0) {
 	/* If bill_ptr == prev_ptr, no ready users so don't need sched(). */
 	sched_ticks = SCHED_RATE;	/* reset quantum */

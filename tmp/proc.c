@@ -20,6 +20,7 @@
 #include "proc.h"
 
 PRIVATE unsigned char switching;	/* nonzero to inhibit interrupt() */
+PRIVATE char current_group = DEFAULT_GROUP
 
 FORWARD _PROTOTYPE( int mini_send, (struct proc *caller_ptr, int dest,
 		message *m_ptr) );
@@ -316,9 +317,17 @@ PRIVATE void pick_proc()
 	proc_ptr = rp;
 	return;
   }
-  if ( (rp = rdy_head[USER_Q]) != NIL_PROC) {
+  if ( (rp = rdy_head[USER_Q_NORM]) != NIL_PROC && rp->group == 'N'
+	&& (current_group != 'N' || rdy_head[USER_Q_CALC] == NIL_PROC)) {
 	proc_ptr = rp;
 	bill_ptr = rp;
+	current_group = 'N'
+	return;
+  if ( (rp = rdy_head[USER_Q_CALC]) != NIL_PROC && rp->group == 'C'
+	&& (current_group != 'C' || rdy_head[USER_Q_NORM] == NIL_PROC)) {
+	proc_ptr = rp;
+	bill_ptr = rp;
+	current_group = 'C'
 	return;
   }
   /* No one is ready.  Run the idle task.  The idle task might be made an
@@ -333,11 +342,12 @@ PRIVATE void pick_proc()
 PRIVATE void ready(rp)
 register struct proc *rp;	/* this process is now runnable */
 {
-/* Add 'rp' to the end of one of the queues of runnable processes. Three
+/* Add 'rp' to the end of one of the queues of runnable processes. Four
  * queues are maintained:
  *   TASK_Q   - (highest priority) for runnable tasks
  *   SERVER_Q - (middle priority) for MM and FS only
- *   USER_Q   - (lowest priority) for user processes
+ *   USER_Q_NORM   - (lowest priority) for user normal processes
+ *   USER_Q_CALC   - (lowest priority) for user calculation processes
  */
 
   if (istaskp(rp)) {
@@ -364,10 +374,15 @@ register struct proc *rp;	/* this process is now runnable */
   /* Add user process to the front of the queue.  (Is a bit fairer to I/O
    * bound processes.)
    */
-  if (rdy_head[USER_Q] == NIL_PROC)
-	rdy_tail[USER_Q] = rp;
-  rp->p_nextready = rdy_head[USER_Q];
-  rdy_head[USER_Q] = rp;
+  if (rdy_head[USER_Q_NORM] == NIL_PROC)
+		rdy_tail[USER_Q_NORM] = rp;
+  rp->p_nextready = rdy_head[USER_Q_NORM];
+  rdy_head[USER_Q_NORM] = rp;
+
+  if (rdy_head[USER_Q_CALC] == NIL_PROC)
+		rdy_tail[USER_Q_CALC] = rp;
+  rp->p_nextready = rdy_head[USER_Q_CALC];
+  rdy_head[USER_Q_CALC] = rp;
 }
 
 /*===========================================================================*
@@ -379,7 +394,7 @@ register struct proc *rp;	/* this process is no longer runnable */
 /* A process has blocked. */
 
   register struct proc *xp;
-  register struct proc **qtail;  /* TASK_Q, SERVER_Q, or USER_Q rdy_tail */
+  register struct proc **qtail;  /* TASK_Q, SERVER_Q, USER_Q_NORM, or USER_Q_CALC rdy_tail */
 
   if (istaskp(rp)) {
 	/* task stack still ok? */
@@ -406,17 +421,29 @@ register struct proc *rp;	/* this process is no longer runnable */
 		return;
 	}
 	qtail = &rdy_tail[SERVER_Q];
-  } else {
-	if ( (xp = rdy_head[USER_Q]) == NIL_PROC) return;
+} else if (rp->group == 'N') {
+	if ( xp = rdy_head[USER_Q_NORM]) == NIL_PROC ) return;
 	if (xp == rp) {
-		rdy_head[USER_Q] = xp->p_nextready;
+		rdy_head[USER_Q_NORM] = xp->p_nextready;
 #if (CHIP == M68000)
 		if (rp == proc_ptr)
 #endif
 		pick_proc();
 		return;
 	}
-	qtail = &rdy_tail[USER_Q];
+	qtail = &rdy_tail[USER_Q_NORM];
+  }
+} else {
+	if ( xp = rdy_head[USER_Q_CALC]) == NIL_PROC ) return;
+	if (xp == rp) {
+		rdy_head[USER_Q_CALC] = xp->p_nextready;
+#if (CHIP == M68000)
+		if (rp == proc_ptr)
+#endif
+		pick_proc();
+		return;
+	}
+	qtail = &rdy_tail[USER_Q_CALC];
   }
 
   /* Search body of queue.  A process can be made unready even if it is
@@ -438,13 +465,21 @@ PRIVATE void sched()
  * possibly promoting another user to head of the queue.
  */
 
-  if (rdy_head[USER_Q] == NIL_PROC) return;
+  if (rdy_head[USER_Q_NORM] == NIL_PROC && rdy_head[USER_Q_CALC] == NIL_PROC)
+		return;
 
   /* One or more user processes queued. */
-  rdy_tail[USER_Q]->p_nextready = rdy_head[USER_Q];
-  rdy_tail[USER_Q] = rdy_head[USER_Q];
-  rdy_head[USER_Q] = rdy_head[USER_Q]->p_nextready;
-  rdy_tail[USER_Q]->p_nextready = NIL_PROC;
+	if (current_group == 'N'){
+  	rdy_tail[USER_Q_NORM]->p_nextready = rdy_head[USER_Q_NORM];
+  	rdy_tail[USER_Q_NORM] = rdy_head[USER_Q_NORM];
+  	rdy_head[USER_Q_NORM] = rdy_head[USER_Q_NORM]->p_nextready;
+  	rdy_tail[USER_Q_NORM]->p_nextready = NIL_PROC;
+	}else{
+		rdy_tail[USER_Q_CALC]->p_nextready = rdy_head[USER_Q_CALC];
+  	rdy_tail[USER_Q_CALC] = rdy_head[USER_Q_CALC];
+  	rdy_head[USER_Q_CALC] = rdy_head[USER_Q_CALC]->p_nextready;
+  	rdy_tail[USER_Q_CALC]->p_nextready = NIL_PROC;
+	}
   pick_proc();
 }
 
