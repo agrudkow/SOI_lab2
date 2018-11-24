@@ -20,7 +20,7 @@
 #include "proc.h"
 
 PRIVATE unsigned char switching;	/* nonzero to inhibit interrupt() */
-PRIVATE char current_group = DEFAULT_GROUP
+char current_group = DEFAULT_GROUP;
 
 FORWARD _PROTOTYPE( int mini_send, (struct proc *caller_ptr, int dest,
 		message *m_ptr) );
@@ -321,13 +321,13 @@ PRIVATE void pick_proc()
 	&& (current_group != 'N' || rdy_head[USER_Q_CALC] == NIL_PROC)) {
 	proc_ptr = rp;
 	bill_ptr = rp;
-	current_group = 'N'
+	current_group = 'N';
 	return;
   if ( (rp = rdy_head[USER_Q_CALC]) != NIL_PROC && rp->group == 'C'
 	&& (current_group != 'C' || rdy_head[USER_Q_NORM] == NIL_PROC)) {
 	proc_ptr = rp;
 	bill_ptr = rp;
-	current_group = 'C'
+	current_group = 'C';
 	return;
   }
   /* No one is ready.  Run the idle task.  The idle task might be made an
@@ -374,15 +374,17 @@ register struct proc *rp;	/* this process is now runnable */
   /* Add user process to the front of the queue.  (Is a bit fairer to I/O
    * bound processes.)
    */
-  if (rdy_head[USER_Q_NORM] == NIL_PROC)
-		rdy_tail[USER_Q_NORM] = rp;
-  rp->p_nextready = rdy_head[USER_Q_NORM];
-  rdy_head[USER_Q_NORM] = rp;
-
-  if (rdy_head[USER_Q_CALC] == NIL_PROC)
-		rdy_tail[USER_Q_CALC] = rp;
-  rp->p_nextready = rdy_head[USER_Q_CALC];
-  rdy_head[USER_Q_CALC] = rp;
+	if ( rp->group == 'N'){
+  	if (rdy_head[USER_Q_NORM] == NIL_PROC)
+			rdy_tail[USER_Q_NORM] = rp;
+  	rp->p_nextready = rdy_head[USER_Q_NORM];
+  	rdy_head[USER_Q_NORM] = rp;
+	}else{
+		if (rdy_head[USER_Q_CALC] == NIL_PROC)
+			rdy_tail[USER_Q_CALC] = rp;
+	  rp->p_nextready = rdy_head[USER_Q_CALC];
+	  rdy_head[USER_Q_CALC] = rp;
+	}
 }
 
 /*===========================================================================*
@@ -422,7 +424,7 @@ register struct proc *rp;	/* this process is no longer runnable */
 	}
 	qtail = &rdy_tail[SERVER_Q];
 } else if (rp->group == 'N') {
-	if ( xp = rdy_head[USER_Q_NORM]) == NIL_PROC ) return;
+	if (( xp = rdy_head[USER_Q_NORM]) == NIL_PROC ) return;
 	if (xp == rp) {
 		rdy_head[USER_Q_NORM] = xp->p_nextready;
 #if (CHIP == M68000)
@@ -432,9 +434,9 @@ register struct proc *rp;	/* this process is no longer runnable */
 		return;
 	}
 	qtail = &rdy_tail[USER_Q_NORM];
-  }
+
 } else {
-	if ( xp = rdy_head[USER_Q_CALC]) == NIL_PROC ) return;
+	if (( xp = rdy_head[USER_Q_CALC]) == NIL_PROC ) return;
 	if (xp == rp) {
 		rdy_head[USER_Q_CALC] = xp->p_nextready;
 #if (CHIP == M68000)

@@ -123,7 +123,6 @@ INIT_ASSERT
 /* PSW masks. */
 #define IF_MASK 0x00000200
 #define IOPL_MASK 0x003000
-#define DEFAULT_GROUP 'N'
 
 PRIVATE message m;
 

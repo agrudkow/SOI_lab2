@@ -198,3 +198,5 @@
 #define SIG_MAP        m2_l1	/* used by kernel for passing signal bit map */
 #define SIG_MSG_PTR    m1_i1	/* pointer to info to build sig catch stack */
 #define SIG_CTXT_PTR   m1_p1	/* pointer to info to restore signal context */
+
+#define DEFAULT_GROUP 'N'     /*Default group for user's processes*/

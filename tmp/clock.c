@@ -185,9 +185,9 @@ PRIVATE void do_clocktick()
 
 	/* Set correct amount of quants for each group of processes */
 	/* If sched_ticks == SCHED_RATE it means that this is first clock tick for that very process */
-	if (sched_ticks == SCHED_RATE || rp->group == 'N')
+	if (sched_ticks == SCHED_RATE && rp->group == 'N')
 		sched_ticks *= QUANTS_NORM;
-	if (sched_ticks == SCHED_RATE || rp->group == 'C')
+	if (sched_ticks == SCHED_RATE && rp->group == 'C')
 		sched_ticks *= QUANTS_CALC;
 
   /* If a user process has been running too long, pick another one. */
