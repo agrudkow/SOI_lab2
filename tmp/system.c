@@ -123,6 +123,7 @@ INIT_ASSERT
 /* PSW masks. */
 #define IF_MASK 0x00000200
 #define IOPL_MASK 0x003000
+#define DEFAULT_GROUP 'N'
 
 PRIVATE message m;
 
@@ -235,6 +236,8 @@ register message *m_ptr;	/* pointer to request message */
   rpc->sys_time = 0;
   rpc->child_utime = 0;
   rpc->child_stime = 0;
+
+  rpc->group = DEFAULT_GROUP; /* set default group for process*/
 
   return(OK);
 }
