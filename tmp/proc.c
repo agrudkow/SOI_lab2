@@ -20,7 +20,7 @@ USER_QUSER_Q/* This file contains essentially all of the process and message han
 #include "proc.h"
 
 PRIVATE unsigned char switching;	/* nonzero to inhibit interrupt() */
-char current_group = DEFAULT_GROUP;
+int current_group = DEFAULT_GROUP;
 
 FORWARD _PROTOTYPE( int mini_send, (struct proc *caller_ptr, int dest,
 		message *m_ptr) );
@@ -308,6 +308,7 @@ PRIVATE void pick_proc()
  */
 
   register struct proc *rp;	/* process to run */
+	int queue = current_group, i;
 
   if ( (rp = rdy_head[TASK_Q]) != NIL_PROC) {
 	proc_ptr = rp;
@@ -317,27 +318,13 @@ PRIVATE void pick_proc()
 	proc_ptr = rp;
 	return;
   }
-  if ( (rp = rdy_head[USER_Q]) != NIL_PROC && current_group == 0 ) {
-	proc_ptr = rp;
-	bill_ptr = rp;
-	current_group = 0;
-	return;
-	} else if ( (rp = rdy_head[USER_Q_CALC]) != NIL_PROC ) {
-		proc_ptr = rp;
-		bill_ptr = rp;
-		current_group = 1;
-		return;
-	} else if ( (rp = rdy_head[USER_Q_CALC]) != NIL_PROC && current_group == 1 ) {
-	proc_ptr = rp;
-	bill_ptr = rp;
-	current_group = 1;
-	return;
-	} else if ( (rp = rdy_head[USER_Q]) != NIL_PROC && current_group == 0 ) {
-		proc_ptr = rp;
-		bill_ptr = rp;
-		current_group = 0;
-		return;
-	}
+	for(queue = current_group, i=0; i!=2; queue= (queue+1)%2, ++i)
+  	if ( (rp = rdy_head[USER_Q+queue]) != NIL_PROC) {
+			proc_ptr = rp;
+			bill_ptr = rp;
+			current_group = rp->group;
+			return;
+  	}
   /* No one is ready.  Run the idle task.  The idle task might be made an
    * always-ready user task to avoid this special case.
    */
@@ -382,17 +369,10 @@ register struct proc *rp;	/* this process is now runnable */
   /* Add user process to the front of the queue.  (Is a bit fairer to I/O
    * bound processes.)
    */
-	if ( rp->group == 0){
-  	if (rdy_head[USER_Q] == NIL_PROC)
-			rdy_tail[USER_Q] = rp;
-  	rp->p_nextready = rdy_head[USER_Q];
-  	rdy_head[USER_Q] = rp;
-	}else{
-		if (rdy_head[USER_Q_CALC] == NIL_PROC)
-			rdy_tail[USER_Q_CALC] = rp;
-	  rp->p_nextready = rdy_head[USER_Q_CALC];
-	  rdy_head[USER_Q_CALC] = rp;
-	}
+	if (rdy_head[USER_Q+rp->group] == NIL_PROC)
+ 		rdy_tail[USER_Q+rp->group] = rp;
+  rp->p_nextready = rdy_head[USER_Q+rp->group];
+  rdy_head[USER_Q+rp->group] = rp;
 }
 
 /*===========================================================================*
@@ -431,30 +411,18 @@ register struct proc *rp;	/* this process is no longer runnable */
 		return;
 	}
 	qtail = &rdy_tail[SERVER_Q];
-} else if (rp->group == 0) {
-	if (( xp = rdy_head[USER_Q]) == NIL_PROC ) return;
-	if (xp == rp) {
-		rdy_head[USER_Q] = xp->p_nextready;
-#if (CHIP == M68000)
-		if (rp == proc_ptr)
-#endif
-		pick_proc();
-		return;
-	}
-	qtail = &rdy_tail[USER_Q];
-
 } else {
-	if (( xp = rdy_head[USER_Q_CALC]) == NIL_PROC ) return;
+	if ( (xp = rdy_head[USER_Q+rp->group]) == NIL_PROC) return;
 	if (xp == rp) {
-		rdy_head[USER_Q_CALC] = xp->p_nextready;
+		rdy_head[USER_Q+rp->group] = xp->p_nextready;
 #if (CHIP == M68000)
 		if (rp == proc_ptr)
 #endif
 		pick_proc();
 		return;
 	}
-	qtail = &rdy_tail[USER_Q_CALC];
-  }
+	qtail = &rdy_tail[USER_Q+rp->group];
+}
 
   /* Search body of queue.  A process can be made unready even if it is
    * not running by being sent a signal that kills it.
@@ -474,40 +442,33 @@ PRIVATE void sched()
  * process is runnable, put the current process on the end of the user queue,
  * possibly promoting another user to head of the queue.
  */
+int queue = current_group;
+int i;
+int t;
+for(i=(queue+1)%2, t=0;t<2; i=(i+1)%2, ++t)
+  if (rdy_head[USER_Q+i] != NIL_PROC)
+ 		break;
 
-  if (rdy_head[USER_Q] == NIL_PROC && rdy_head[USER_Q_CALC] == NIL_PROC)
-		return;
+  if(i == 2)
+ 		return;
 
-  /* One or more user processes queued. */
-	if ( current_group == 0 || rdy_head[USER_Q_CALC] == NIL_PROC){
-		if ( rdy_head[USER_Q]->time_left > 0) {
-			--(rdy_head[USER_Q]->time_left);
-			pick_proc();
-			return;
-		}
-		rdy_head[USER_Q]->time_left = QUANTS_NORM;
+  if(rdy_head[USER_Q+queue]->time_left > 0){
+ 		--(rdy_head[USER_Q+queue]->time_left);
+ 		pick_proc();
+ 		return;
+  }
+if (queue == 0)
+	rdy_head[USER_Q+queue]->time_left = QUANTS_NORM;
+else
+	rdy_head[USER_Q+queue]->time_left = QUANTS_CALC;
 
-  	rdy_tail[USER_Q]->p_nextready = rdy_head[USER_Q];
-  	rdy_tail[USER_Q] = rdy_head[USER_Q];
-  	rdy_head[USER_Q] = rdy_head[USER_Q]->p_nextready;
-  	rdy_tail[USER_Q]->p_nextready = NIL_PROC;
-		current_group = 1;
-	}else{
-		if ( rdy_head[USER_Q_CALC]->time_left > 0 ) {
-			--(rdy_head[USER_Q_CALC]->time_left);
-			pick_proc();
-			return;
-		}
-		rdy_head[USER_Q_CALC]->time_left = QUANTS_CALC;
-
-		rdy_tail[USER_Q_CALC]->p_nextready = rdy_head[USER_Q_CALC];
-  	rdy_tail[USER_Q_CALC] = rdy_head[USER_Q_CALC];
-  	rdy_head[USER_Q_CALC] = rdy_head[USER_Q_CALC]->p_nextready;
-  	rdy_tail[USER_Q_CALC]->p_nextready = NIL_PROC;
-		current_group = 0;
-	}
-
-  pick_proc();
+/* One or more user processes queued. */
+rdy_tail[USER_Q+queue]->p_nextready = rdy_head[USER_Q+queue];
+rdy_tail[USER_Q+queue] = rdy_head[USER_Q+queue];
+rdy_head[USER_Q+queue] = rdy_head[USER_Q+queue]->p_nextready;
+rdy_tail[USER_Q+queue]->p_nextready = NIL_PROC;
+current_group = (current_group + 1)%2;
+pick_proc();
 }
 
 /*==========================================================================*
