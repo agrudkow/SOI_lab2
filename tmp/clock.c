@@ -464,7 +464,7 @@ int irq;
   kb_timer();					/* keyboard repeat */
   if (sched_ticks == 1) fd_timer();		/* floppy deselect */
 #endif
-
+/* changes*/
   if (next_alarm <= now ||
       sched_ticks == 1 &&
       bill_ptr == prev_ptr &&
