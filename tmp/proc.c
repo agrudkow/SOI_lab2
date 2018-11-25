@@ -317,19 +317,15 @@ PRIVATE void pick_proc()
 	proc_ptr = rp;
 	return;
   }
-  if ( (rp = rdy_head[USER_Q]) != NIL_PROC && (current_group == 'C' || rdy_head[USER_Q_CALC] == NIL_PROC)) {
+  if ( (rp = rdy_head[USER_Q]) != NIL_PROC && current_group == 'N' ) {
 	proc_ptr = rp;
 	bill_ptr = rp;
-	if (rp->time_left > 0)
-		return;
 	current_group = 'N';
 	return;
 	}
-  if ( (rp = rdy_head[USER_Q]) != NIL_PROC && (current_group == 'N' || rdy_head[USER_Q] == NIL_PROC)) {
+  if ( (rp = rdy_head[USER_Q_CALC]) != NIL_PROC && current_group == 'C' ) {
 	proc_ptr = rp;
 	bill_ptr = rp;
-	if (rp->time_left > 0)
-		return;
 	current_group = 'C';
 	return;
   }
@@ -383,10 +379,10 @@ register struct proc *rp;	/* this process is now runnable */
   	rp->p_nextready = rdy_head[USER_Q];
   	rdy_head[USER_Q] = rp;
 	}else{
-		if (rdy_head[USER_Q] == NIL_PROC)
-			rdy_tail[USER_Q] = rp;
-	  rp->p_nextready = rdy_head[USER_Q];
-	  rdy_head[USER_Q] = rp;
+		if (rdy_head[USER_Q_CALC] == NIL_PROC)
+			rdy_tail[USER_Q_CALC] = rp;
+	  rp->p_nextready = rdy_head[USER_Q_CALC];
+	  rdy_head[USER_Q_CALC] = rp;
 	}
 }
 
@@ -439,16 +435,16 @@ register struct proc *rp;	/* this process is no longer runnable */
 	qtail = &rdy_tail[USER_Q];
 
 } else {
-	if (( xp = rdy_head[USER_Q]) == NIL_PROC ) return;
+	if (( xp = rdy_head[USER_Q_CALC]) == NIL_PROC ) return;
 	if (xp == rp) {
-		rdy_head[USER_Q] = xp->p_nextready;
+		rdy_head[USER_Q_CALC] = xp->p_nextready;
 #if (CHIP == M68000)
 		if (rp == proc_ptr)
 #endif
 		pick_proc();
 		return;
 	}
-	qtail = &rdy_tail[USER_Q];
+	qtail = &rdy_tail[USER_Q_CALC];
   }
 
   /* Search body of queue.  A process can be made unready even if it is
@@ -470,12 +466,12 @@ PRIVATE void sched()
  * possibly promoting another user to head of the queue.
  */
 
-  if (rdy_head[USER_Q] == NIL_PROC && rdy_head[USER_Q] == NIL_PROC)
+  if (rdy_head[USER_Q] == NIL_PROC && rdy_head[USER_Q_CALC] == NIL_PROC)
 		return;
 
   /* One or more user processes queued. */
-	if ( current_group == 'N' ){
-		if ( rdy_head[USER_Q]->time_left > 0 ) {
+	if ( current_group == 'N' || rdy_head[USER_Q_CALC] == NIL_PROC){
+		if ( rdy_head[USER_Q]->time_left > 0) {
 			--(rdy_head[USER_Q]->time_left);
 			pick_proc();
 			return;
@@ -488,17 +484,17 @@ PRIVATE void sched()
   	rdy_tail[USER_Q]->p_nextready = NIL_PROC;
 		current_group = 'C';
 	}else{
-		if ( rdy_head[USER_Q]->time_left > 0 ) {
-			--(rdy_head[USER_Q]->time_left);
+		if ( rdy_head[USER_Q_CALC]->time_left > 0 ) {
+			--(rdy_head[USER_Q_CALC]->time_left);
 			pick_proc();
 			return;
 		}
-		rdy_head[USER_Q]->time_left = QUANTS_CALC;
+		rdy_head[USER_Q_CALC]->time_left = QUANTS_CALC;
 
-		rdy_tail[USER_Q]->p_nextready = rdy_head[USER_Q];
-  	rdy_tail[USER_Q] = rdy_head[USER_Q];
-  	rdy_head[USER_Q] = rdy_head[USER_Q]->p_nextready;
-  	rdy_tail[USER_Q]->p_nextready = NIL_PROC;
+		rdy_tail[USER_Q_CALC]->p_nextready = rdy_head[USER_Q_CALC];
+  	rdy_tail[USER_Q_CALC] = rdy_head[USER_Q_CALC];
+  	rdy_head[USER_Q_CALC] = rdy_head[USER_Q_CALC]->p_nextready;
+  	rdy_tail[USER_Q_CALC]->p_nextready = NIL_PROC;
 		current_group = 'N';
 	}
 
