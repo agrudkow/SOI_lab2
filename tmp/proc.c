@@ -1,4 +1,4 @@
-/* This file contains essentially all of the process and message handling.
+USER_QUSER_Q/* This file contains essentially all of the process and message handling.
  * It has two main entry points from the outside:
  *
  *   sys_call:   called when a process or task does SEND, RECEIVE or SENDREC
@@ -317,7 +317,7 @@ PRIVATE void pick_proc()
 	proc_ptr = rp;
 	return;
   }
-  if ( (rp = rdy_head[USER_Q_NORM]) != NIL_PROC && rp->group == 'N'
+  if ( (rp = rdy_head[USER_Q]) != NIL_PROC && rp->group == 'N'
 	&& (current_group == 'C' || rdy_head[USER_Q_CALC] == NIL_PROC || rp->time_left < QUANTS_NORM)) {
 	proc_ptr = rp;
 	bill_ptr = rp;
@@ -325,7 +325,7 @@ PRIVATE void pick_proc()
 	return;
 	}
   if ( (rp = rdy_head[USER_Q_CALC]) != NIL_PROC && rp->group == 'C'
-	&& (current_group == 'N' || rdy_head[USER_Q_NORM] == NIL_PROC || rp->time_left < QUANTS_CALC)) {
+	&& (current_group == 'N' || rdy_head[USER_Q] == NIL_PROC || rp->time_left < QUANTS_CALC)) {
 	proc_ptr = rp;
 	bill_ptr = rp;
 	current_group = 'C';
@@ -347,7 +347,7 @@ register struct proc *rp;	/* this process is now runnable */
  * queues are maintained:
  *   TASK_Q   - (highest priority) for runnable tasks
  *   SERVER_Q - (middle priority) for MM and FS only
- *   USER_Q_NORM   - (lowest priority) for user normal processes
+ *   USER_Q   - (lowest priority) for user normal processes
  *   USER_Q_CALC   - (lowest priority) for user calculation processes
  */
 
@@ -376,10 +376,10 @@ register struct proc *rp;	/* this process is now runnable */
    * bound processes.)
    */
 	if ( rp->group == 'N'){
-  	if (rdy_head[USER_Q_NORM] == NIL_PROC)
-			rdy_tail[USER_Q_NORM] = rp;
-  	rp->p_nextready = rdy_head[USER_Q_NORM];
-  	rdy_head[USER_Q_NORM] = rp;
+  	if (rdy_head[USER_Q] == NIL_PROC)
+			rdy_tail[USER_Q] = rp;
+  	rp->p_nextready = rdy_head[USER_Q];
+  	rdy_head[USER_Q] = rp;
 	}else{
 		if (rdy_head[USER_Q_CALC] == NIL_PROC)
 			rdy_tail[USER_Q_CALC] = rp;
@@ -397,7 +397,7 @@ register struct proc *rp;	/* this process is no longer runnable */
 /* A process has blocked. */
 
   register struct proc *xp;
-  register struct proc **qtail;  /* TASK_Q, SERVER_Q, USER_Q_NORM, or USER_Q_CALC rdy_tail */
+  register struct proc **qtail;  /* TASK_Q, SERVER_Q, USER_Q, or USER_Q_CALC rdy_tail */
 
   if (istaskp(rp)) {
 	/* task stack still ok? */
@@ -425,16 +425,16 @@ register struct proc *rp;	/* this process is no longer runnable */
 	}
 	qtail = &rdy_tail[SERVER_Q];
 } else if (rp->group == 'N') {
-	if (( xp = rdy_head[USER_Q_NORM]) == NIL_PROC ) return;
+	if (( xp = rdy_head[USER_Q]) == NIL_PROC ) return;
 	if (xp == rp) {
-		rdy_head[USER_Q_NORM] = xp->p_nextready;
+		rdy_head[USER_Q] = xp->p_nextready;
 #if (CHIP == M68000)
 		if (rp == proc_ptr)
 #endif
 		pick_proc();
 		return;
 	}
-	qtail = &rdy_tail[USER_Q_NORM];
+	qtail = &rdy_tail[USER_Q];
 
 } else {
 	if (( xp = rdy_head[USER_Q_CALC]) == NIL_PROC ) return;
@@ -468,22 +468,22 @@ PRIVATE void sched()
  * possibly promoting another user to head of the queue.
  */
 
-  if (rdy_head[USER_Q_NORM] == NIL_PROC && rdy_head[USER_Q_CALC] == NIL_PROC)
+  if (rdy_head[USER_Q] == NIL_PROC && rdy_head[USER_Q_CALC] == NIL_PROC)
 		return;
 
   /* One or more user processes queued. */
 	if ( current_group == 'N' ){
-		if ( rdy_head[USER_Q_NORM]->time_left > 0 ) {
-			--(rdy_head[USER_Q_NORM]->time_left);
+		if ( rdy_head[USER_Q]->time_left > 0 ) {
+			--(rdy_head[USER_Q]->time_left);
 			pick_proc();
 			return;
 		}
-		rdy_head[USER_Q_NORM]->time_left = QUANTS_NORM;
+		rdy_head[USER_Q]->time_left = QUANTS_NORM;
 
-  	rdy_tail[USER_Q_NORM]->p_nextready = rdy_head[USER_Q_NORM];
-  	rdy_tail[USER_Q_NORM] = rdy_head[USER_Q_NORM];
-  	rdy_head[USER_Q_NORM] = rdy_head[USER_Q_NORM]->p_nextready;
-  	rdy_tail[USER_Q_NORM]->p_nextready = NIL_PROC;
+  	rdy_tail[USER_Q]->p_nextready = rdy_head[USER_Q];
+  	rdy_tail[USER_Q] = rdy_head[USER_Q];
+  	rdy_head[USER_Q] = rdy_head[USER_Q]->p_nextready;
+  	rdy_tail[USER_Q]->p_nextready = NIL_PROC;
 		current_group = 'C';
 	}else{
 		if ( rdy_head[USER_Q_CALC]->time_left > 0 ) {
@@ -491,7 +491,7 @@ PRIVATE void sched()
 			pick_proc();
 			return;
 		}
-		rdy_head[USER_Q_NORM]->time_left = QUANTS_CALC;
+		rdy_head[USER_Q]->time_left = QUANTS_CALC;
 
 		rdy_tail[USER_Q_CALC]->p_nextready = rdy_head[USER_Q_CALC];
   	rdy_tail[USER_Q_CALC] = rdy_head[USER_Q_CALC];
