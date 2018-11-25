@@ -325,7 +325,7 @@ PRIVATE void pick_proc()
 	current_group = 'N';
 	return;
 	}
-  if ( (rp = rdy_head[USER_Q]) != NIL_PROC && (current_group == 'N' || rdy_head[USER_Q] == NIL_PROC) {
+  if ( (rp = rdy_head[USER_Q]) != NIL_PROC && (current_group == 'N' || rdy_head[USER_Q] == NIL_PROC)) {
 	proc_ptr = rp;
 	bill_ptr = rp;
 	if (rp->time_left > 0)
