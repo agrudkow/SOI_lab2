@@ -121,7 +121,7 @@
 /* The following items pertain to the scheduling queues. */
 #define TASK_Q             0	/* ready tasks are scheduled via queue 0 */
 #define SERVER_Q           1	/* ready servers are scheduled via queue 1 */
-#define USER_Q_NORM        2	/* ready users are scheduled via queue 2 */
+#define USER_Q        		 2	/* ready users are scheduled via queue 2 */
 #define USER_Q_CALC        3	/* ready users are scheduled via queue 2 */
 #define NQ                 4	/* # of scheduling queues */
 
