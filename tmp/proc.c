@@ -317,18 +317,27 @@ PRIVATE void pick_proc()
 	proc_ptr = rp;
 	return;
   }
-  if ( (rp = rdy_head[USER_Q]) != NIL_PROC && current_group == 'N' ) {
+  if ( (rp = rdy_head[USER_Q]) != NIL_PROC && current_group == 0 ) {
 	proc_ptr = rp;
 	bill_ptr = rp;
-	current_group = 'N';
+	current_group = 0;
 	return;
+	} else if ( (rp = rdy_head[USER_Q_CALC]) != NIL_PROC ) {
+		proc_ptr = rp;
+		bill_ptr = rp;
+		current_group = 1;
+		return;
+	} else if ( (rp = rdy_head[USER_Q_CALC]) != NIL_PROC && current_group == 1 ) {
+	proc_ptr = rp;
+	bill_ptr = rp;
+	current_group = 1;
+	return;
+	} else if ( (rp = rdy_head[USER_Q]) != NIL_PROC && current_group == 0 ) {
+		proc_ptr = rp;
+		bill_ptr = rp;
+		current_group = 0;
+		return;
 	}
-  if ( (rp = rdy_head[USER_Q_CALC]) != NIL_PROC && current_group == 'C' ) {
-	proc_ptr = rp;
-	bill_ptr = rp;
-	current_group = 'C';
-	return;
-  }
   /* No one is ready.  Run the idle task.  The idle task might be made an
    * always-ready user task to avoid this special case.
    */
@@ -373,7 +382,7 @@ register struct proc *rp;	/* this process is now runnable */
   /* Add user process to the front of the queue.  (Is a bit fairer to I/O
    * bound processes.)
    */
-	if ( rp->group == 'N'){
+	if ( rp->group == 0){
   	if (rdy_head[USER_Q] == NIL_PROC)
 			rdy_tail[USER_Q] = rp;
   	rp->p_nextready = rdy_head[USER_Q];
@@ -422,7 +431,7 @@ register struct proc *rp;	/* this process is no longer runnable */
 		return;
 	}
 	qtail = &rdy_tail[SERVER_Q];
-} else if (rp->group == 'N') {
+} else if (rp->group == 0) {
 	if (( xp = rdy_head[USER_Q]) == NIL_PROC ) return;
 	if (xp == rp) {
 		rdy_head[USER_Q] = xp->p_nextready;
@@ -470,7 +479,7 @@ PRIVATE void sched()
 		return;
 
   /* One or more user processes queued. */
-	if ( current_group == 'N' || rdy_head[USER_Q_CALC] == NIL_PROC){
+	if ( current_group == 0 || rdy_head[USER_Q_CALC] == NIL_PROC){
 		if ( rdy_head[USER_Q]->time_left > 0) {
 			--(rdy_head[USER_Q]->time_left);
 			pick_proc();
@@ -482,7 +491,7 @@ PRIVATE void sched()
   	rdy_tail[USER_Q] = rdy_head[USER_Q];
   	rdy_head[USER_Q] = rdy_head[USER_Q]->p_nextready;
   	rdy_tail[USER_Q]->p_nextready = NIL_PROC;
-		current_group = 'C';
+		current_group = 1;
 	}else{
 		if ( rdy_head[USER_Q_CALC]->time_left > 0 ) {
 			--(rdy_head[USER_Q_CALC]->time_left);
@@ -495,7 +504,7 @@ PRIVATE void sched()
   	rdy_tail[USER_Q_CALC] = rdy_head[USER_Q_CALC];
   	rdy_head[USER_Q_CALC] = rdy_head[USER_Q_CALC]->p_nextready;
   	rdy_tail[USER_Q_CALC]->p_nextready = NIL_PROC;
-		current_group = 'N';
+		current_group = 0;
 	}
 
   pick_proc();
