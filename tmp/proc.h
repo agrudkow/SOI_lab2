@@ -59,7 +59,8 @@ struct proc {
 
   char p_name[16];		/* name of the process */
 
-  char group;    /* type of group, N - normal, C - calculation */ 
+  char group;    /* type of group, N - normal, C - calculation */
+  //int time_left;
 };
 
 /* Guard word for task stacks. */

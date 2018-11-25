@@ -318,14 +318,14 @@ PRIVATE void pick_proc()
 	return;
   }
   if ( (rp = rdy_head[USER_Q_NORM]) != NIL_PROC && rp->group == 'N'
-	&& (current_group != 'N' || rdy_head[USER_Q_CALC] == NIL_PROC)) {
+	&& (current_group == 'C' || rdy_head[USER_Q_CALC] == NIL_PROC)) {
 	proc_ptr = rp;
 	bill_ptr = rp;
 	current_group = 'N';
 	return;
 	}
   if ( (rp = rdy_head[USER_Q_CALC]) != NIL_PROC && rp->group == 'C'
-	&& (current_group != 'C' || rdy_head[USER_Q_NORM] == NIL_PROC)) {
+	&& (current_group == 'N' || rdy_head[USER_Q_NORM] == NIL_PROC)) {
 	proc_ptr = rp;
 	bill_ptr = rp;
 	current_group = 'C';
@@ -477,12 +477,15 @@ PRIVATE void sched()
   	rdy_tail[USER_Q_NORM] = rdy_head[USER_Q_NORM];
   	rdy_head[USER_Q_NORM] = rdy_head[USER_Q_NORM]->p_nextready;
   	rdy_tail[USER_Q_NORM]->p_nextready = NIL_PROC;
+		current_group = 'C';
 	}else{
 		rdy_tail[USER_Q_CALC]->p_nextready = rdy_head[USER_Q_CALC];
   	rdy_tail[USER_Q_CALC] = rdy_head[USER_Q_CALC];
   	rdy_head[USER_Q_CALC] = rdy_head[USER_Q_CALC]->p_nextready;
   	rdy_tail[USER_Q_CALC]->p_nextready = NIL_PROC;
+		current_group = 'N';
 	}
+
   pick_proc();
 }
 
