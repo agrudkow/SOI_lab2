@@ -317,17 +317,19 @@ PRIVATE void pick_proc()
 	proc_ptr = rp;
 	return;
   }
-  if ( (rp = rdy_head[USER_Q]) != NIL_PROC && rp->group == 'N'
-	&& (current_group == 'C' || rdy_head[USER_Q] == NIL_PROC || rp->time_left < QUANTS_NORM)) {
+  if ( (rp = rdy_head[USER_Q]) != NIL_PROC && (current_group == 'C' || rdy_head[USER_Q_CALC] == NIL_PROC)) {
 	proc_ptr = rp;
 	bill_ptr = rp;
+	if (rp->time_left > 0)
+		return;
 	current_group = 'N';
 	return;
 	}
-  if ( (rp = rdy_head[USER_Q]) != NIL_PROC && rp->group == 'C'
-	&& (current_group == 'N' || rdy_head[USER_Q] == NIL_PROC || rp->time_left < QUANTS_CALC)) {
+  if ( (rp = rdy_head[USER_Q]) != NIL_PROC && (current_group == 'N' || rdy_head[USER_Q] == NIL_PROC) {
 	proc_ptr = rp;
 	bill_ptr = rp;
+	if (rp->time_left > 0)
+		return;
 	current_group = 'C';
 	return;
   }
