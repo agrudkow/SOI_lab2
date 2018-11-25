@@ -199,6 +199,6 @@
 #define SIG_MSG_PTR    m1_i1	/* pointer to info to build sig catch stack */
 #define SIG_CTXT_PTR   m1_p1	/* pointer to info to restore signal context */
 
-#define DEFAULT_GROUP 'N'     /*Default group for user's processes*/
+#define DEFAULT_GROUP  0     /*Default group for user's processes*/
 #define QUANTS_NORM    10
 #define QUANTS_CALC    20
