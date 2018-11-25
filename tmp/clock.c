@@ -53,8 +53,6 @@
 /* Constant definitions. */
 #define MILLISEC         100	/* how often to call the scheduler (msec) */
 #define SCHED_RATE (MILLISEC*HZ/1000)	/* number of ticks per schedule */
-#define QUANTS_NORM			10 /* number of quants for normal process */
-#define QUANTS_CALC			20 /* number of quants for calculation process */
 
 /* Clock parameters. */
 #if (CHIP == INTEL)
@@ -182,13 +180,6 @@ PRIVATE void do_clocktick()
 		}
 	}
   }
-
-	/* Set correct amount of quants for each group of processes */
-	/* If sched_ticks == SCHED_RATE it means that this is first clock tick for that very process */
-	if (sched_ticks == SCHED_RATE && rp->group == 'N')
-		sched_ticks *= QUANTS_NORM;
-	if (sched_ticks == SCHED_RATE && rp->group == 'C')
-		sched_ticks *= QUANTS_CALC;
 
   /* If a user process has been running too long, pick another one. */
   if (--sched_ticks == 0) {
@@ -477,18 +468,11 @@ int irq;
   if (next_alarm <= now ||
       sched_ticks == 1 &&
       bill_ptr == prev_ptr &&
-      ((rdy_head[USER_Q_NORM] != NIL_PROC && rp->group == 'N') ||
-			(rdy_head[USER_Q_CALC] != NIL_PROC && rp->group == 'C'))) {
+      (rdy_head[USER_Q_NORM] != NIL_PROC ||
+			rdy_head[USER_Q_CALC] != NIL_PROC)) {
 	interrupt(CLOCK);
 	return 1;	/* Reenable interrupts */
   }
-
-	/* Set correct amount of quants for each group of processes */
-	/* If sched_ticks == SCHED_RATE it means that this is first clock tick for that very process */
-	if (sched_ticks == SCHED_RATE && rp->group == 'N')
-		sched_ticks *= QUANTS_NORM;
-	if (sched_ticks == SCHED_RATE && rp->group == 'C')
-		sched_ticks *= QUANTS_CALC;
 
   if (--sched_ticks == 0) {
 	/* If bill_ptr == prev_ptr, no ready users so don't need sched(). */
