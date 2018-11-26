@@ -308,7 +308,7 @@ PRIVATE void pick_proc()
  */
 
   register struct proc *rp;	/* process to run */
-	int queue = current_group, i;
+	int queue , i;
 
   if ( (rp = rdy_head[TASK_Q]) != NIL_PROC) {
 	proc_ptr = rp;
@@ -442,31 +442,25 @@ PRIVATE void sched()
  * process is runnable, put the current process on the end of the user queue,
  * possibly promoting another user to head of the queue.
  */
-int queue = current_group;
-int i;
-int t;
-for(i=(queue+1)%2, t=0;t<2; i=(i+1)%2, ++t)
-  if (rdy_head[USER_Q+i] != NIL_PROC)
- 		break;
+if (rdy_head[USER_Q] == NIL_PROC && rdy_head[USER_Q_NORM] == NIL_PROC) {
+	return;
+}
 
-  if(i == 2)
- 		return;
-
-  if(rdy_head[USER_Q+queue]->time_left > 0){
- 		--(rdy_head[USER_Q+queue]->time_left);
+  if(rdy_head[USER_Q+current_group]->time_left > 0){
+ 		--(rdy_head[USER_Q+current_group]->time_left);
  		pick_proc();
  		return;
   }
-if (queue == 0)
-	rdy_head[USER_Q+queue]->time_left = QUANTS_NORM;
+if (current_group == 0)
+	rdy_head[USER_Q+current_group]->time_left = QUANTS_NORM;
 else
-	rdy_head[USER_Q+queue]->time_left = QUANTS_CALC;
+	rdy_head[USER_Q+current_group]->time_left = QUANTS_CALC;
 
 /* One or more user processes queued. */
-rdy_tail[USER_Q+queue]->p_nextready = rdy_head[USER_Q+queue];
-rdy_tail[USER_Q+queue] = rdy_head[USER_Q+queue];
-rdy_head[USER_Q+queue] = rdy_head[USER_Q+queue]->p_nextready;
-rdy_tail[USER_Q+queue]->p_nextready = NIL_PROC;
+rdy_tail[USER_Q+current_group]->p_nextready = rdy_head[USER_Q+current_group];
+rdy_tail[USER_Q+current_group] = rdy_head[USER_Q+current_group];
+rdy_head[USER_Q+current_group] = rdy_head[USER_Q+current_group]->p_nextready;
+rdy_tail[USER_Q+current_group]->p_nextready = NIL_PROC;
 current_group = (current_group + 1)%2;
 pick_proc();
 }

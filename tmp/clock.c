@@ -473,6 +473,9 @@ int irq;
 	interrupt(CLOCK);
 	return 1;	/* Reenable interrupts */
   }
+	if (rp->group == 1 && sched_ticks == SCHED_RATE) {
+		sched_ticks = 2 * SCHED_RATE;
+	}
 
   if (--sched_ticks == 0) {
 	/* If bill_ptr == prev_ptr, no ready users so don't need sched(). */
