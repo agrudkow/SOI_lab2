@@ -473,6 +473,7 @@ int irq;
 	interrupt(CLOCK);
 	return 1;	/* Reenable interrupts */
   }
+	/*doubles sched_ticks if process is in calculation group */
 	if (rp->group == 1 && sched_ticks == SCHED_RATE) {
 		sched_ticks = 2 * SCHED_RATE;
 	}
