@@ -239,7 +239,7 @@ register message *m_ptr;	/* pointer to request message */
   rpc->child_stime = 0;
 
   rpc->group = DEFAULT_GROUP; /* set default group for process*/
-  rpc->time_left = QUANTS_NORM;
+  /*rpc->time_left = QUANTS_NORM;*/
 
   return(OK);
 }
@@ -1248,7 +1248,7 @@ message *m_ptr;
     if (istaskp(process) || isservp(process)) continue;
     if (process->p_pid == m_ptr->m1_i1){
       process->group = new_group;
-      process->time_left = (( new_group == 'C' ) ? QUANTS_CALC : QUANTS_NORM ); 
+      process->time_left = (( new_group == 'C' ) ? QUANTS_CALC : QUANTS_NORM );
       return (OK);
     }
   }

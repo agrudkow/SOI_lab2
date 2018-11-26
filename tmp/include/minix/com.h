@@ -200,5 +200,3 @@
 #define SIG_CTXT_PTR   m1_p1	/* pointer to info to restore signal context */
 
 #define DEFAULT_GROUP  0     /*Default group for user's processes*/
-#define QUANTS_NORM    1
-#define QUANTS_CALC    1

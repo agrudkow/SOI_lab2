@@ -445,17 +445,7 @@ PRIVATE void sched()
 if (rdy_head[USER_Q] == NIL_PROC && rdy_head[USER_Q_NORM] == NIL_PROC) {
 	return;
 }
-/*
-  if(rdy_head[USER_Q+current_group]->time_left > 0){
- 		--(rdy_head[USER_Q+current_group]->time_left);
- 		pick_proc();
- 		return;
-  }
-if (current_group == 0)
-	rdy_head[USER_Q+current_group]->time_left = QUANTS_NORM;
-else
-	rdy_head[USER_Q+current_group]->time_left = QUANTS_CALC;
-*/
+
 /* One or more user processes queued. */
 rdy_tail[USER_Q+current_group]->p_nextready = rdy_head[USER_Q+current_group];
 rdy_tail[USER_Q+current_group] = rdy_head[USER_Q+current_group];

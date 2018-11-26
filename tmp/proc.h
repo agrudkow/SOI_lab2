@@ -60,7 +60,7 @@ struct proc {
   char p_name[16];		/* name of the process */
 
   int group;    /* type of group, N - normal, C - calculation */
-  int time_left;
+  /*int time_left;*/ /* time left for process in a group /number of quants */
 };
 
 /* Guard word for task stacks. */

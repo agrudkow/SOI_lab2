@@ -180,6 +180,10 @@ PRIVATE void do_clocktick()
 		}
 	}
   }
+	/*doubles sched_ticks if process is in calculation group */
+	if (rp->group == 1 && sched_ticks == SCHED_RATE) {
+		sched_ticks = 2 * SCHED_RATE;
+	}
 
   /* If a user process has been running too long, pick another one. */
   if (--sched_ticks == 0) {
@@ -468,7 +472,7 @@ int irq;
   if (next_alarm <= now ||
       sched_ticks == 1 &&
       bill_ptr == prev_ptr &&
-      (rdy_head[USER_Q_NORM] != NIL_PROC ||
+      (rdy_head[USER_Q] != NIL_PROC ||
 			rdy_head[USER_Q_CALC] != NIL_PROC)) {
 	interrupt(CLOCK);
 	return 1;	/* Reenable interrupts */
